@@ -26,4 +26,3 @@ function formatTicketDate(isoString) {
   }
 
   export default formatTicketDate
-  

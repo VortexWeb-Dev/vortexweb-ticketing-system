@@ -1,8 +1,13 @@
-
-import './App.css'
-import { ThemeProvider } from './context/ThemeContext'
-import MainPage from './MainPage'
-import {createServer, Server, Model } from "miragejs"
+import "./App.css";
+import { ThemeProvider } from "./context/ThemeContext";
+import MainPage from "./Pages/MainPage";
+import { createServer, Server, Model } from "miragejs";
+import mockTickets from "./mockData/mockTickets";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import TimelinePage from "./Pages/Timeline";
+import { useState } from "react";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
 
 // createServer({
 //   routes() {
@@ -55,79 +60,17 @@ import {createServer, Server, Model } from "miragejs"
 //   window.server.shutdown();
 // }
 
+
 createServer({
   models: {
     ticket: Model,
   },
   seeds(server) {
-    const tickets = [
-      {
-        title: "App crashes on login",
-        status: "Open",
-        priority: "High",
-        category: "Technical Support",
-        description: "The application crashes whenever I try to log in on my iPhone.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 8).toISOString(),
-        updatedAt: new Date(2025, 3, 8).toISOString()
-      },
-      {
-        title: "Login button not responsive",
-        status: "Open",
-        priority: "Medium",
-        category: "Technical Support",
-        description: "Clicking the login button does nothing on the web version.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 7).toISOString(),
-        updatedAt: new Date(2025, 3, 7).toISOString()
-      },
-      {
-        title: "Error 500 on dashboard",
-        status: "InProgress",
-        priority: "High",
-        category: "Technical Support",
-        description: "I'm getting a 500 server error when I open the dashboard after logging in.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 6).toISOString(),
-        updatedAt: new Date(2025, 3, 8).toISOString()
-      },
-      {
-        title: "Push notifications not working",
-        status: "InProgress",
-        priority: "Low",
-        category: "Technical Support",
-        description: "Not receiving any push notifications even though they're enabled in settings.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 5).toISOString(),
-        updatedAt: new Date(2025, 3, 5).toISOString()
-      },
-      {
-        title: "App freezes on settings page",
-        status: "Resolved",
-        priority: "Medium",
-        category: "Technical Support",
-        description: "Every time I open the settings page, the app becomes unresponsive.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 4).toISOString(),
-        updatedAt: new Date(2025, 3, 6).toISOString()
-      },
-      {
-        title: "Sound not working during video calls",
-        status: "Open",
-        priority: "High",
-        category: "Technical Support",
-        description: "Audio cuts out randomly during video calls on Android.",
-        attachments: [],
-        createdAt: new Date(2025, 3, 3).toISOString(),
-        updatedAt: new Date(2025, 3, 3).toISOString()
-      }
-    ];
-  
-    tickets.forEach(ticket => server.create("ticket", ticket));
+    mockTickets.forEach((ticket) => server.create("ticket", ticket));
   },
   routes() {
     this.namespace = "api";
-    
+
     // POST endpoint to create tickets
     this.post("/tickets", (schema, request) => {
       const attrs = JSON.parse(request.requestBody);
@@ -144,15 +87,38 @@ createServer({
 });
 
 
+
 function App() {
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <>
-    <ThemeProvider>
-      <MainPage/>
-    </ThemeProvider>
+      <Router>
+        <ThemeProvider>
+          {/* <Routes>
+            <Route path="/" element={<MainPage />} />
+            <Route path="/timeline" element={<TimelinePage />} />
+          </Routes> */}
+           <div className="flex h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+        <Sidebar sidebarOpen={isSidebarOpen} setSidebarOpen={setIsSidebarOpen} />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto p-4">
+          <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/timeline" element={<TimelinePage />} />
+          <Route path="/*" element={<MainPage />} />
+                
+              </Routes>
+            {/* Your page content goes here */}
+          </main>
+        </div>
+      </div>
+        </ThemeProvider>
+      </Router>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
