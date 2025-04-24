@@ -30,3 +30,5 @@ async function fetchData(url, config = {}, setIsLoading=null, setError=null) {
 }
 
 export default fetchData
+
+

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { CloudUpload, Bell, Search, LogIn } from "lucide-react";
 import fetchData from "../utils/fetchData";
+import fileToBase64 from "../utils/filetob64";
 
 function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
 
@@ -10,13 +11,14 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
         priority: "Low",
         category: "Technical Support",
         description: "",
+        client_name: "John Scott",
         attachments: []
       });
       
     //   const [tickets, setTickets] = useState([]);
       const [submitMessage, setSubmitMessage] = useState("");
       const [showSubmitMessage, setShowSubmitMessage] = useState(false);
-
+      const [currentFiles, setCurrentFiles] = useState([]) 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -25,7 +27,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
         });
       };
       
-      const handleFileChange = (e) => {
+      const handleFileChange = async(e) => {
         const files = Array.from(e.target.files);
         const validFiles = files.filter(file => {
           // Check file type
@@ -53,28 +55,31 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
         });
         
         // Store files as blob URLs
-        validFiles.forEach(file => {
-          // Create a blob URL for easy access and display
-          const blobUrl = URL.createObjectURL(file);
-          
-          setFormData(prevData => ({
-            ...prevData,
-            attachments: [...prevData.attachments, {
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              blobUrl: blobUrl,
-              file: file // Keep the original file object for upload
-            }]
-          }));
-        });
+        async function handleFiles(validFiles) {
+          for (const file of validFiles) {
+            try {
+              const base64file = await fileToBase64(file);
+              setFormData(prevData => ({
+                ...prevData,
+                attachments: [
+                  ...prevData.attachments,
+                  [file.name, base64file]
+                ]
+              }));
+            } catch (error) {
+              console.error('Error converting file:', file.name, error);
+            }
+          }
+        }
+        handleFiles(validFiles)
       };
       
       const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(formData);
         
         try {
-          const response = await fetch("/api/tickets", {
+          const response = await fetch(import.meta.env.VITE_CREATE_TICKET , {
             method: "POST",
             body: JSON.stringify(formData)
           });
@@ -85,7 +90,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           
           if (data.ticket) {
             console.log(data);
-            fetchData("api/tickets",{}, setLoading, setError)
+            fetchData(import.meta.env.VITE_GETALL_TICKETS,{}, setLoading, setError)
             .then ((data)=> {
                 console.log(data.tickets)
                 setTickets(data.tickets)
@@ -100,6 +105,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
               priority: "Low",
               category: "Technical Support",
               description: "",
+              client_name: `John ${Math.floor(Math.random()*10000)}`,
               attachments: []
             });
             
@@ -215,7 +221,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           ></textarea>
         </div>
         
-        <div className="mb-4">
+         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Attachments
           </label>
@@ -241,17 +247,18 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
               </p>
             </div>
           </div>
-          
+
           {/* Display attached files */}
-          {formData.attachments.length > 0 && (
+
+           {formData.attachments.length > 0 && (
             <div className="mt-3">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Attached files:</p>
               <ul className="mt-2 space-y-2">
                 {formData.attachments.map((file, index) => (
                   <li key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
                     <div className="flex items-center">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">{file.name}</span>
-                      <span className="ml-2 text-xs text-gray-400">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">{file[0]}</span>
+                      {/* <span className="ml-2 text-xs text-gray-400">({(file.size / 1024 / 1024).toFixed(2)} MB)</span> */}
                     </div>
                     <button 
                       type="button" 
@@ -265,7 +272,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
               </ul>
             </div>
           )}
-        </div>
+        </div>  
         
     
       </form>
