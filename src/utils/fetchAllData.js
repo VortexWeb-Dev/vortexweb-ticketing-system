@@ -8,7 +8,11 @@ const fetchAllData = async (url, config = {}, setIsLoading=null, setError=null) 
   while (aggregateData.length < total) {
     try {
       const response = await axios.get(
-        url+page
+        url+page,
+        {
+          headers: {
+          "Cache-Control": "no-cache"
+        }}
       );
       const { tickets, pagination } = response.data;
       const newTotal = pagination.total

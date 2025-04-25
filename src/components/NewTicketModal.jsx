@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { CloudUpload, Bell, Search, LogIn } from "lucide-react";
+import fetchAllData from "../utils/fetchAllData";
 import fetchData from "../utils/fetchData";
 import fileToBase64 from "../utils/filetob64";
 
@@ -94,7 +95,16 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
             fetchData(import.meta.env.VITE_GETALL_TICKETS,{}, setLoading, setError)
             .then ((data)=> {
                 console.log(data.tickets)
-                setTickets(data.tickets)
+                setTickets(data.tickets.filter((ticket) => {
+                  try {
+                    const ticketHost = ticket.portalUrl
+                    console.log("tickethost: ",ticket.portalUrl, "yourhost:",(new URL(document.referrer).hostname));
+                    
+                    return ticketHost == (new URL(document.referrer).hostname);
+                  } catch {
+                    return false;
+                  }
+                }))
             }
       )
             setSubmitMessage("Ticket submitted successfully!");

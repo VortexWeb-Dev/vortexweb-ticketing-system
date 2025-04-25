@@ -51,11 +51,12 @@ export default function TicketingSystem() {
       setLoading,
       setError
     ).then((data) => {
+      
       setTickets(
         data.filter((ticket) => {
           try {
-            const ticketHost = new URL(ticket.portal_url).hostname;
-            console.log("tickethost: ",ticketHost, "yourhost:",referrerHost);
+            const ticketHost = ticket.portalUrl
+            console.log("tickethost: ",ticket.portalUrl, "yourhost:",referrerHost);
             
             return ticketHost == referrerHost;
           } catch {
