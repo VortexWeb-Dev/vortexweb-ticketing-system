@@ -55,7 +55,9 @@ export default function TicketingSystem() {
         data.filter((ticket) => {
           try {
             const ticketHost = new URL(ticket.portal_url).hostname;
-            return ticketHost === referrerHost;
+            console.log("tickethost: ",ticketHost, "yourhost:",referrerHost);
+            
+            return ticketHost == referrerHost;
           } catch {
             return false;
           }
