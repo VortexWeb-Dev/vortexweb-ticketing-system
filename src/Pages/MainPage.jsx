@@ -22,16 +22,48 @@ export default function TicketingSystem() {
   const [error, setError] = useState(true);
   const [viewAllTickets, setViewAllTickets] = useState(false);
 
+  // useEffect(() => {
+  //   fetchAllData(
+  //     `${import.meta.env.VITE_GETALL_TICKETS}` + "&limit=50&page=",
+  //     {},
+  //     setLoading,
+  //     setError
+  //   ).then((data) => {
+  //     setTickets(data.filter((ticket)=> ticket.portal_url == (new URL(document.referrer)).hostname));
+  //   });
+  // }, []);
+
   useEffect(() => {
+    const referrer = document.referrer;
+    let referrerHost = "";
+  
+    try {
+      if (referrer) {
+        referrerHost = new URL(referrer).hostname;
+      }
+    } catch (e) {
+      console.error("Invalid referrer URL:", e);
+    }
+  
     fetchAllData(
       `${import.meta.env.VITE_GETALL_TICKETS}` + "&limit=50&page=",
       {},
       setLoading,
       setError
     ).then((data) => {
-      setTickets(data);
+      setTickets(
+        data.filter((ticket) => {
+          try {
+            const ticketHost = new URL(ticket.portal_url).hostname;
+            return ticketHost === referrerHost;
+          } catch {
+            return false;
+          }
+        })
+      );
     });
   }, []);
+  
 
   const sortedTickets = useMemo(() => {
     if (!Array.isArray(tickets)) return [];

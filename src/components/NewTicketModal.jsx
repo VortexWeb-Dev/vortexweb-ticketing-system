@@ -12,7 +12,8 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
         category: "Technical Support",
         description: "",
         client_name: "John Scott",
-        attachments: []
+        attachments: [],
+        portal_url : new URL(document.referrer).hostname
       });
       
     //   const [tickets, setTickets] = useState([]);
@@ -105,8 +106,9 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
               priority: "Low",
               category: "Technical Support",
               description: "",
-              client_name: `John ${Math.floor(Math.random()*10000)}`,
-              attachments: []
+              client_name: ``,
+              attachments: [],
+              portal_url: new URL(document.referrer).hostname
             });
             
             // Refresh ticket list
@@ -221,6 +223,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           ></textarea>
         </div>
         
+
          <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Attachments
