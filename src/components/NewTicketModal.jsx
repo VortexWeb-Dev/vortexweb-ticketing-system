@@ -21,6 +21,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
       const [submitMessage, setSubmitMessage] = useState("");
       const [showSubmitMessage, setShowSubmitMessage] = useState(false);
       const [currentFiles, setCurrentFiles] = useState([]) 
+      const [submitLoading, setSubmitLoading] = useState(false)
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -43,7 +44,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           // Check file size (10MB max)
           const maxSize = 10 * 1024 * 1024; // 10MB in bytes
           
-          const isValidType = validTypes.includes(file.type);
+          const isValidType = validTypes.includes(file.type) || file.type.startsWith("video/");
           const isValidSize = file.size <= maxSize;
           
           if (!isValidType) {
@@ -79,6 +80,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
       const handleSubmit = async (e) => {
         e.preventDefault();
         console.log(formData);
+        setSubmitLoading(true)
         
         try {
           const response = await fetch(import.meta.env.VITE_CREATE_TICKET , {
@@ -133,6 +135,8 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           console.error("Error submitting ticket:", error);
           setSubmitMessage("Error submitting ticket. Please try again.");
           setShowSubmitMessage(true);
+        } finally{
+          setSubmitLoading(false)
         }
       };
       
@@ -265,7 +269,7 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
                     id="fileInput"
                     className="hidden" 
                     multiple
-                    accept=".jpg,.jpeg,.png,.gif,.svg,.webp,.mp4,.webm,.ogg,.pdf,.docx"
+                    accept=".jpg,.jpeg,.png,.gif,.svg,.webp,video/*,.pdf,.docx"
                     onChange={handleFileChange}
                   />
                 </label>
@@ -314,8 +318,8 @@ function NewTicketModal({ onClose, setTickets, setLoading, setError }) {
           >
             Cancel
           </button>
-          <button form="createTicket" type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm">
-            Submit Ticket
+          <button form="createTicket" type="submit" className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm ${submitLoading ? 'disabled' : ''}`}>
+           {submitLoading ? "Submitting.." : "Submit"} 
           </button>
         </div>
       </div>
