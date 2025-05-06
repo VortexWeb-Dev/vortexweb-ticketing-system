@@ -61,7 +61,7 @@ export default function FullTicketModal({ isOpen, onClose, ticket }) {
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black bg-opacity-50 dark:bg-opacity-70" onClick={onClose}></div>
+      <div className="absolute inset-0 backdrop-blur-md bg-opacity-50 dark:bg-opacity-70" onClick={onClose}></div>
       
       {/* Modal */}
       <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl">
