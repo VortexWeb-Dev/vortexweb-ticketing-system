@@ -12,6 +12,7 @@ import NewTicketModal from "../components/NewTicketModal";
 import fetchAllData from "../utils/fetchAllData";
 import formatTicketDate from "../utils/formatTicketDate";
 import CommentCell from "../components/CommentCell";
+import FullTicketModal from "../components/FullTicketModal";
 
 // Main Layout Component
 export default function TicketingSystem() {
@@ -21,6 +22,8 @@ export default function TicketingSystem() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(true);
   const [viewAllTickets, setViewAllTickets] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState();
 
   // useEffect(() => {
   //   fetchAllData(
@@ -36,7 +39,7 @@ export default function TicketingSystem() {
   useEffect(() => {
     const referrer = document.referrer;
     let referrerHost = "";
-  
+
     try {
       if (referrer) {
         referrerHost = new URL(referrer).hostname;
@@ -44,20 +47,24 @@ export default function TicketingSystem() {
     } catch (e) {
       console.error("Invalid referrer URL:", e);
     }
-  
+
     fetchAllData(
       `${import.meta.env.VITE_GETALL_TICKETS}` + "&limit=50&page=",
       {},
       setLoading,
       setError
     ).then((data) => {
-      
       setTickets(
         data.filter((ticket) => {
           try {
-            const ticketHost = ticket.portalUrl
-            console.log("tickethost: ",ticket.portalUrl, "yourhost:",referrerHost);
-            
+            const ticketHost = ticket.portalUrl;
+            console.log(
+              "tickethost: ",
+              ticket.portalUrl,
+              "yourhost:",
+              referrerHost
+            );
+
             return ticketHost == referrerHost;
           } catch {
             return false;
@@ -66,7 +73,6 @@ export default function TicketingSystem() {
       );
     });
   }, []);
-  
 
   const sortedTickets = useMemo(() => {
     if (!Array.isArray(tickets)) return [];
@@ -167,90 +173,110 @@ export default function TicketingSystem() {
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <tr>
-                        <th className="px-4 py-3 text-left">ID</th>
-                        <th className="px-4 py-3 text-left">Title</th>
-                        <th className="px-4 py-3 text-left">Status</th>
-                        <th className="px-4 py-3 text-left">Priority</th>
-                        <th className="px-4 py-3 text-left">Category</th>
-                        <th className="px-4 py-3 text-left">Attachments</th>
-                        <th className="px-4 py-3 text-left">Comments</th>
-                        <th className="px-4 py-3 text-left">Created</th>
-                        <th className="px-4 py-3 text-left">Last Updated</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {visibleTickets.map((ticket) => (
-                        <tr
-                          key={ticket.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700/30"
-                        >
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                            TKTV{ticket.id}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                            {ticket.title}
-                          </td>
-                          <td className="px-4 py-3">
-                            <StatusBadge status={ticket.status} />
-                          </td>
-                          <td className="px-4 py-3">
-                            <PriorityBadge priority={ticket.priority} />
-                          </td>
-                          <td className="px-4 py-3 dark:text-gray-50 text-gray-700">
-                            <StatusBadge status={ticket.category} />
-                          </td>
+                  <>
+                    <FullTicketModal
+                      isOpen={modalOpen}
+                      onClose={() => setModalOpen(false)}
+                      ticket={selectedTicket}
+                    />
 
-                          <td className="px-4 py-3">
-                            {ticket.attachments &&
-                            ticket.attachments.length > 0 ? (
-                              <div className="flex items-center space-x-1">
-                                {ticket.attachments
-                                  .slice(0, 3)
-                                  .map((attachment, index) => (
-                                    <div
-                                      key={index}
-                                      className="relative group cursor-pointer"
-                                      title={`Attachment ${attachment.id}`}
-                                    >
-                                      <a
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="block"
-                                      >
-                                        <File className="h-5 w-5 text-xs font-medium text-blue-600 dark:text-blue-400" />
-                                      </a>
-                                    </div>
-                                  ))}
-                                {ticket.attachments.length > 3 && (
-                                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs">
-                                    +{ticket.attachments.length - 3}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                None
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <CommentCell comment={ticket.comments} />
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                            <Clock size={14} className="mr-1" />{" "}
-                            {formatTicketDate(ticket.createdTime)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                            {formatTicketDate(ticket.updatedTime)}
-                          </td>
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-700/50 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-3 text-left">ID</th>
+                          <th className="px-4 py-3 text-left">Title</th>
+                          <th className="px-4 py-3 text-left">Status</th>
+                          <th className="px-4 py-3 text-left">Priority</th>
+                          <th className="px-4 py-3 text-left">Category</th>
+                          <th className="px-4 py-3 text-left">Attachments</th>
+                          <th className="px-4 py-3 text-left">Comments</th>
+                          <th className="px-4 py-3 text-left">Created</th>
+                          <th className="px-4 py-3 text-left">Last Updated</th>
+                          <th className="px-4 py-3 text-left"></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {visibleTickets.map((ticket) => (
+                          <tr
+                            key={ticket.id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                          >
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                              TKTV{ticket.id}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                              {ticket.title}
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge status={ticket.status} />
+                            </td>
+                            <td className="px-4 py-3">
+                              <PriorityBadge priority={ticket.priority} />
+                            </td>
+                            <td className="px-4 py-3 dark:text-gray-50 text-gray-700">
+                              <StatusBadge status={ticket.category} />
+                            </td>
+
+                            <td className="px-4 py-3">
+                              {ticket.attachments &&
+                              ticket.attachments.length > 0 ? (
+                                <div className="flex items-center space-x-1">
+                                  {ticket.attachments
+                                    .slice(0, 3)
+                                    .map((attachment, index) => (
+                                      <div
+                                        key={index}
+                                        className="relative group cursor-pointer"
+                                        title={`Attachment ${attachment.id}`}
+                                      >
+                                        <a
+                                          href={attachment.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="block"
+                                        >
+                                          <File className="h-5 w-5 text-xs font-medium text-blue-600 dark:text-blue-400" />
+                                        </a>
+                                      </div>
+                                    ))}
+                                  {ticket.attachments.length > 3 && (
+                                    <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-xs">
+                                      +{ticket.attachments.length - 3}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  None
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <CommentCell comment={ticket.comments} />
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                              <Clock size={14} className="mr-1" />{" "}
+                              {formatTicketDate(ticket.createdTime)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                              {formatTicketDate(ticket.updatedTime)}
+                            </td>
+                            <td className="px-4 py-3 text-md text-blue-600 dark:text-blue-300">
+                              <div
+                                className="underline hover:cursor-pointer"
+                                onClick={() => {
+                                  setSelectedTicket(ticket);
+                                  setModalOpen(true);
+                                }}
+                              >
+                                VIEW
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
                 </div>
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700 text-sm text-center">
                   <button
